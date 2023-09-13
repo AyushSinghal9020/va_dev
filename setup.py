@@ -14,7 +14,7 @@ setuptools.setup(
         'Operating System :: OS Independent' ,
     ] ,
     python_requires = '>=3.6' , 
-    py_modules = ['vdev'] , 
-    package_dir = {'':'vdev/src'} ,
+    py_modules = ['va_dev'] , 
+    package_dir = {'':'va_dev/src'} ,
     install_requires = []
 )
