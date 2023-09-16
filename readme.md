@@ -12,13 +12,18 @@ int func_1(int x , int y){
     return x;
 }
 ```
+|CMD|Jupyter|
+|---|---|
+|`pip install git+https://github.com/AyushSinghal9020/va_dev.git
+`|`! pip install git+https://github.com/AyushSinghal9020/va_dev.git
+`
 To use the function 
 ```
 from va_dev import va_dev as vdev
 
-obj = vdev()
+obj = vdev('c++')
 
-lib = obj.load_lib('absolute path to the C++ file' , 'c++')
+lib = obj.load_lib('absolute path to the C++ file')
 
 file = obj.load_func('func_1' , args = [0 , 1])
 
