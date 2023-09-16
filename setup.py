@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name = 'vdev' ,
+    name = 'va_dev' ,
     version = '0.0.1' , 
     author = "Ayush Singhal",
     description = 'Loads different functions form different non-python files' ,
