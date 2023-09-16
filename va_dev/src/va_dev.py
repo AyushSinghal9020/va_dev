@@ -151,7 +151,9 @@ class va_dev:
             os.system(f'g++ {file_name}')
 
             try : r = subprocess.run([f'{self.func_name}.exe'])
-            except Exception as e : r = subprocess.run(['a.exe'])
+            except Exception as e : 
+                try : r = subprocess.run(['a.exe'])
+                except Exception as e : r = subprocess.run(['a.out'])
 
             return r
 
