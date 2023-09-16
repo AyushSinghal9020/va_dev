@@ -4,7 +4,16 @@ import subprocess
 
 class va_dev:
 
-    def __init__(self):pass
+    def __init__(self , load_type : str):
+        '''
+            Intializizes the object
+
+            Args - 
+
+            1) load_type - Type of path to load (currently only C++ Supported)
+        '''
+
+        self.load_type = load_type
 
     def re_match(self , value : str , expressions : list) -> list:
         '''
@@ -51,19 +60,17 @@ class va_dev:
         return set(r_matches)
 
     
-    def load_lib(self, path : str , load_type : str , extra_returns = []):
+    def load_lib(self, path : str , extra_returns = [] , ignore_main = 'False'):
         '''
             Loads the file into the memory. Search for functions/classes and make seperate Dictionaries to load
 
             Args - 
 
             1) path - Absolute Path to the file 
-            2) load_type - Type of path to load (currently only C++ Supported)
-            3)  extra_returns - List of extra return types defined in function example `tuple func_name(){\\func_body}`
+            2)  extra_returns - List of extra return types defined in function example `tuple func_name(){\\func_body}`
         '''
         
         self.path = path
-        self.load_type = load_type
         self.extra_returns = extra_returns
 
 
@@ -109,6 +116,16 @@ class va_dev:
                                for name , code 
                                in zip(self.class_names , self.classes)}
 
+            if 'main' in self.func_names:
+                if ignore_main : pass
+                else: 
+                    warnings.warn('''The given file has `main()` function. 
+                    
+                    1) If you want to directly execute the file. Use obj.execute().
+                    2) If you want to ignore the main function and still use the file pass `ignore_func = True`''')
+
+                    raise ValueError('File contains main Function')
+
     def arg_builder(self , args : list):
         '''
             Builds Arguments to be passed to the function selected 
@@ -126,6 +143,17 @@ class va_dev:
                 counter += 1
 
         return arguments 
+
+    def execute(self , file_name):
+
+        if self.load_type == 'c++':
+
+            os.system(f'g++ {file_name}')
+
+            try : r = subprocess.run([f'{self.func_name}.exe'])
+            except Exception as e : r = subprocess.run(['a.exe'])
+
+            return r
 
     def load_func(self , func_name , args = []):
         '''
@@ -146,13 +174,9 @@ class va_dev:
         
             with open (f'{self.func_name}.cpp' , 'w') as func_program: func_program.write(self.write_up)
 
-            os.system(f'g++ {self.func_name}.cpp')
+            return_val = self.execute(file_name = f'{self.func_name}.cpp')
 
-            print(f'g++ {self.func_name}.cpp')
-            try : r = subprocess.run([f'{self.func_name}.exe'])
-            except Exception as e: r = subprocess.run(['a.exe'])
-
-            return r
+            return return_val
 
     def load_class(self , class_name , obj_name = 'sample_object' , args = []) : 
         '''
@@ -175,8 +199,6 @@ class va_dev:
 
             with open(f'{self.class_name}.cpp' , 'w') as class_pogram: class_pogram.write(self.write_up)
 
-            os.system(f'g++ {self.class_name}.cpp')
+            return_val = self.execute(file_name = f'{self.class_name}.cpp')
 
-            r = subprocess.run([f'{self.func_name}.exe'])
-
-            return r
+            return return_val
