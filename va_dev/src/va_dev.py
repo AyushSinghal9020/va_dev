@@ -104,7 +104,7 @@ class v_dev:
             
             if self.extra_returns: 
                 
-                self.ex_funcs = [extra_return + '\s+[a-zA-Z_][a-zA-Z_0-9]*\s*\([^)]*\)\s*{[^{}]*((\{[^{}]*\})*[^{}]*)*}'
+                self.ex_funcs = [extra_return + '\s+\w+\s*\([^)]*\)\s*{[^}]*}'
                                  for extra_return
                                  in extra_returns]
                 
