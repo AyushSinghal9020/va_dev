@@ -14,9 +14,8 @@ int func_1(int x , int y){
 ```
 |CMD|Jupyter|
 |---|---|
-|`pip install git+https://github.com/AyushSinghal9020/va_dev.git
-`|`! pip install git+https://github.com/AyushSinghal9020/va_dev.git
-`
+|`pip install git+https://github.com/AyushSinghal9020/va_dev.git`|`! pip install git+https://github.com/AyushSinghal9020/va_dev.git`
+
 To use the function 
 ```
 from va_dev import va_dev as vdev
