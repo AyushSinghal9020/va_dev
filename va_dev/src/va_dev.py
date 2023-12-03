@@ -16,6 +16,12 @@ class v_dev:
 
         self.load_type = load_type
 
+        if self.load_type not in [
+            'c' , 
+            'c++' , 
+            'java'
+        ] : warnings.warn('Please choose a valid language')
+
     def convert_to_list(self , val):
 
         if isinstance(val , list): return val
@@ -47,7 +53,7 @@ class v_dev:
 
         return matches
     
-    def re_find(self , value : str , expression : list) -> list:
+    def re_find(self , expression : str , value : list) -> list:
         '''
             Return all non-overlapping matches of pattern in string, as a list of strings
 
@@ -57,16 +63,17 @@ class v_dev:
             2) expressions - List of expressions to look for in `value` 
         '''
 
-        matches = [re.finditer(exp , value)
+
+        matches = [re.finditer(exp , value , re.MULTILINE|re.DOTALL)
                    for exp 
                    in expression]
-
+        
         r_matches = []
 
         for f_val in matches:
             for s_val in f_val:
                 r_matches.append(s_val.group())
-        
+
         return set(r_matches)
 
     
@@ -91,7 +98,7 @@ class v_dev:
 
         with open(self.path , 'r') as program: self.content = program.read()
 
-        if self.load_type == 'c++':
+        if self.load_type == 'c++' :
             
             self.lib_patterns = [r'#include\s+[<"]?([^<>"]+)[<"]?>' ,
                                  r'#include \s+[<"]?([^<>"]+)[<"]?>' 
@@ -110,9 +117,7 @@ class v_dev:
                 
                 self.func_patterns += self.ex_funcs
             
-            self.value = self.content.splitlines()
-           
-            self.libs = self.re_match(self.value , self.lib_patterns)
+            self.libs = self.re_match(self.content.splitlines() , self.lib_patterns)
             self.s_libs = ''
             for val in self.libs: self.s_libs += val + '\n'
             
@@ -146,6 +151,56 @@ class v_dev:
                     2) If you want to ignore the main function and still use the file pass `ignore_func = True`''')
 
                     raise ValueError('File contains main Function')
+                
+        if self.load_type == 'java' : 
+
+            self.lib_patterns = ['import [a-zA-Z]*' , 
+                                 'from [a-zA-Z]* import [a-zA-Z]*']
+            
+            self.func_patterns = [r'\b(public|private|protected|static|final|\w+)\s+\w+\s+\w+\s*\([^)]*\)\s*\{[^}]*\}']
+
+            self.class_patterns = [r'(class\w+)\s+\w+\s+\w+\s*\([^)]*\)\s*\{[^}]*\}']
+
+            self.libs = self.re_match(self.content.splitlines() , self.lib_patterns)
+
+            print(self.libs)
+
+            self.s_libs = ''
+            for val in self.libs : self.s_libs += val + '\n'
+
+
+            self.funcs = self.re_find(self.func_patterns , self.content )
+            print('h')
+            self.classes = self.re_find(self.class_patterns , self.content)
+
+
+            self.func_names = [val.split()[2].split('(')[0]
+                               for val 
+                               in self.funcs]
+            self.func_desc = {name : code 
+                              for name , code 
+                              in zip(self.func_names , self.funcs)}
+            
+            print(self.func_desc)
+
+            self.class_names = [val.split()[1].split('(')[0]
+                                for val 
+                                in self.classes]
+            self.class_desc = {name : code
+                               for name , code 
+                               in zip(self.class_names , self.classes)}
+            
+            if 'main' in self.func_names: 
+
+                if ignore_main : pass 
+                else : 
+                    warnings.warn('''The given file has `main()` function. 
+                    
+                    1) If you want to directly execute the file. Use obj.execute().
+                    2) If you want to ignore the main function and still use the file pass `ignore_func = True`''')
+
+                    raise ValueError('File contains main Function')
+
 
     def arg_builder(self , args : list):
         '''
@@ -175,8 +230,16 @@ class v_dev:
             except Exception as e : r = subprocess.run(['a.exe'])
 
             return r
+        
+        elif self.load_type == 'java': 
 
-    def load_func(self , func_name : str , args = [] , multiple_returns = False , multiple_args = None):
+            os.system(f'javac {file_name}.java')
+
+            r = subprocess.run(['java' , f'{self.func_class_name}'])
+
+            return r
+
+    def load_func(self , func_name : str , args = [] , multiple_returns = False , multiple_args = None , func_class_name = 'Jav'):
         '''
             Loads the function into existance. Creates the function files and Run them as per the arguments
 
@@ -185,7 +248,7 @@ class v_dev:
             2) args - List of arguments to be passed in 
             3) multiple_returns - If the function returns multiple values. Set this to True
         '''
-
+        self.func_class_name = func_class_name
         self.func_name = func_name
         self.args = args
         self.multiple_returns = multiple_returns
@@ -227,6 +290,16 @@ void WriteResultToFile(const vector<int>& data) {
 
             return return_val
 
+        elif self.load_type == 'java' : 
+
+            self.write_up = f'public class {self.func_class_name}' + '{\n\n\t' + f'{self.func_desc[self.func_name]}' + '\n\t' + '\n\tpublic static void main(String[] args){\n\t' + f'{self.func_name}({self.arg_builder(self.args)});' + '}\n\t' + '}'
+
+            with open(f'{self.func_class_name}.java' , 'w') as func_program : func_program.write(self.write_up)
+
+            return_val = self.execute(file_name = f'{self.func_name}.java')
+
+            return return_val
+        
     def load_class(self , class_name , obj_name = 'sample_object' , args = []) : 
         '''
             Loads the class into existance. Creates the class/object files and Run them as per the arguments
