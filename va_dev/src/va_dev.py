@@ -163,14 +163,11 @@ class v_dev:
 
             self.libs = self.re_match(self.content.splitlines() , self.lib_patterns)
 
-            print(self.libs)
-
             self.s_libs = ''
             for val in self.libs : self.s_libs += val + '\n'
 
 
             self.funcs = self.re_find(self.func_patterns , self.content )
-            print('h')
             self.classes = self.re_find(self.class_patterns , self.content)
 
 
